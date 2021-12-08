@@ -1,0 +1,37 @@
+Options:
+  heartbeatFail: <##ff3232>✘ <##ffffff>%{hbsend}% <##adadad>didn't return the pulse.
+  heartbeatResponded: <##20f722>✔ <##ffffff>%{hbsend}% <##adadad>is healthy!
+on redis message:
+  set {redismsg::*} to split "%redis message%" at ",@,@, "
+  if "%{redismsg::1}%" isn't "%{serverid}%":
+    if "%{redismsg::2}%" is "%{serverid}%":
+      if {redismsg::3} is "heartbeat":
+        if {redismsg::4} is "1":
+          send redis message "%{serverid}%,@,@, %{redismsg::1}%,@,@, heartbeat,@,@, 2" to channel "Channel1"
+          send "Heartbeat Received From %{redismsg::1}%" to console
+        if "%{redismsg::4}%" is "2":
+          set {replyREC} to "true"
+command /heartbeat <string>:
+  trigger:
+    set {arg1} to arg-1
+    send redis message "%{serverid}%,@,@, %{arg1}%,@,@, heartbeat,@,@, 1" to channel "Channel1"
+    wait 10 ticks
+    if {replyREC} is "true":
+      if executor is console:
+        send "%{arg1}% Is Online" to console
+        wait 10 ticks
+        set {replyREC} to "false"
+      if executor is not console:
+        send "{@heartbeatResponded}" to player
+        wait 10 ticks
+        set {replyREC} to "false"
+    else:
+      if executor is console:
+        send "%{arg1}% Is Not Responding" to console
+      if executor is not console:
+        send "{@heartbeatFail}" to player
+
+
+command /serverid:
+  trigger:
+    send "%{serverid}%" to console
