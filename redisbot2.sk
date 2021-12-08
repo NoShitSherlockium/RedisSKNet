@@ -7,14 +7,14 @@ on redis message:
     if "%{redismsg::2}%" is "%{serverid}%":
       if {redismsg::3} is "heartbeat":
         if {redismsg::4} is "1":
-          send redis message "%{serverid}%,@,@, %{redismsg::1}%,@,@, heartbeat,@,@, 2" to channel "Channel1"
+          send redis message "%{serverid}%,@,@, %{redismsg::1}%,@,@, heartbeat,@,@, 2" to channel "heartbeat"
           send "Heartbeat Received From %{redismsg::1}%" to console
         if "%{redismsg::4}%" is "2":
           set {replyREC} to "true"
 command /heartbeat <string>:
   trigger:
     set {arg1} to arg-1
-    send redis message "%{serverid}%,@,@, %{arg1}%,@,@, heartbeat,@,@, 1" to channel "Channel1"
+    send redis message "%{serverid}%,@,@, %{arg1}%,@,@, heartbeat,@,@, 1" to channel "heartbeat"
     wait 10 ticks
     if {replyREC} is "true":
       if executor is console:
