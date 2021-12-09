@@ -17,7 +17,7 @@ on redis message:
     loop all players:
       set {playername} to name of loop-player
       if "%{playername}%" is "%{redismsg2::1}%":
-        send "TEST MSG FROM %{redismsg2::3}%: %{redismsg2::2}%" to loop-player
+        send "<##3effbf>◀ <##adadad>From <##3effbf>%{redismsg2::3}%<##adadad>: <##ffffff>%{redismsg2::2}%" to loop-player
   if redis channel is "sync":
     set {redismsg3::*} to split "%redis message%" at ",@,@, "
     #if "%{serverid}%" is "%{redismsg3::1}%":
@@ -61,16 +61,19 @@ command /heartbeat <string>:
         send "%{arg1}% Is Not Responding" to console
       if executor is not console:
         send "{@heartbeatFail}" to player
-command /smsg <string> <string>:
+command /msg <string> <string>:
   trigger:
     set {_arg1} to arg-1
     set {_arg2} to arg-2
     set {_playername} to name of player
-    #oop all players:
-    #  set {playername} to name of loop-player
-    #  if "%{playername}%" is "%{_arg1}%":
-        #send "TEST MSG FROM %{_playername}%: %{_arg2}%" to loop-player
+    send "<##dedede>▶ <##adadad>To <##3effbf>%{_arg1}%<##adadad>: <##ffffff>%{_arg2}%"
     send redis message "%{_arg1}%,@,@, %{_arg2}%,@,@, %{_playername}%" to channel "messages"
+command /r <string>:
+  trigger:
+    set {_arg1} to arg-1
+    set {_playername} to name of player
+    send "<##dedede>▷ <##adadad>Replying to <##3effbf>%{redismsg2::3}%<##adadad>: <##ffffff>%{_arg1}%" to player
+    send redis message "%{redismsg2::3}%,@,@, %{_arg1}%,@,@, %{_playername}%" to channel "messages"
 command /friendsync:
   trigger:
     send redis message "sync,@,@, %{serverid}%" to channel "sync"
