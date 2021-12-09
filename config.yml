@@ -17,3 +17,4 @@ Channels:
   - "heartbeat"
   - "messages"
   - "sync"
+  - "onlinenotif"
