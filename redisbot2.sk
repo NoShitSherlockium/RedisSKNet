@@ -76,7 +76,7 @@ command /msg <string> <string>:
       if {onlineplayers::*} doesn't contain "%{_arg1}%":
         send "<##dedede>▶ <##adadad>To <##3effbf>%{_arg1}%<##adadad>: <##ffffff>%{_arg2}%" to player
         send redis message "%{_arg1}%,@,@, %{_arg2}%,@,@, %{_playername}%" to channel "messages"
-        send "<##ff3232>✘ <##ffffff>We sent the message to <##adadad>%{redismsg2::3}% <##ffffff>But our network shows them offline, If this is an error, contact your server Developer/Owner" to player
+        send "<##ff3232>✘ <##ffffff>We sent the message to <##adadad>%{_arg1}% <##ffffff>But our network shows them offline, If this is an error, contact your server Developer/Owner" to player
 command /r <string>:
   trigger:
     set {_arg1} to arg-1
