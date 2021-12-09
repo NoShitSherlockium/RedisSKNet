@@ -2,17 +2,34 @@ Options:
   heartbeatFail: <##ff3232>✘ <##ffffff>%{hbsend}% <##adadad>didn't return the pulse.
   heartbeatResponded: <##20f722>✔ <##ffffff>%{hbsend}% <##adadad>is healthy!
 on redis message:
-  set {redismsg::*} to split "%redis message%" at ",@,@, "
-  if "%{redismsg::1}%" isn't "%{serverid}%":
-    if "%{redismsg::2}%" is "%{serverid}%":
-      if {redismsg::3} is "heartbeat":
-        if {redismsg::4} is "1":
-          send redis message "%{serverid}%,@,@, %{redismsg::1}%,@,@, heartbeat,@,@, 2" to channel "heartbeat"
-          send "Heartbeat Received From %{redismsg::1}%" to console
-        if "%{redismsg::4}%" is "2":
-          set {replyREC} to "true"
+  if redis channel is "heartbeat":
+    set {redismsg::*} to split "%redis message%" at ",@,@, "
+    if "%{redismsg::1}%" isn't "%{serverid}%":
+      if "%{redismsg::2}%" is "%{serverid}%":
+        if {redismsg::3} is "heartbeat":
+          if {redismsg::4} is "1":
+            send redis message "%{serverid}%,@,@, %{redismsg::1}%,@,@, heartbeat,@,@, 2" to channel "heartbeat"
+            send "Heartbeat Received From %{redismsg::1}%" to console
+          if "%{redismsg::4}%" is "2":
+            set {replyREC} to "true"
+  if redis channel is "messages":
+    set {redismsg2::*} to split "%redis message%" at ",@,@, "
+    loop all players:
+      set {playername} to name of loop-player
+      if "%{playername}%" is "%{redismsg2::1}%":
+        send "TEST MSG FROM %{redismsg::3}%: %{redismsg::2}%" to loop-player
+  if redis channel is "sync":
+    set {redismsg3::*} to split "%redis message%" at ",@,@, "
+    #if "%{serverid}%" is "%{redismsg3::1}%":
+    #    loop {uniqueplayers::*}:
+    #      send "%{uniqueplayers::%loop-value%}%"
+  if redis channel is "onlinenotif":
+    if {uniqueplayers::*} doesn't contain "%{_playerjoin}%":
+      add "%{_playerjoin}%" to {uniqueplayers::*}
+
 command /heartbeat <string>:
   trigger:
+    set {hbsend} to arg-1
     set {arg1} to arg-1
     send redis message "%{serverid}%,@,@, %{arg1}%,@,@, heartbeat,@,@, 1" to channel "heartbeat"
     wait 10 ticks
@@ -30,8 +47,36 @@ command /heartbeat <string>:
         send "%{arg1}% Is Not Responding" to console
       if executor is not console:
         send "{@heartbeatFail}" to player
-
-
+command /kmsg <string> <string>:
+  trigger:
+    set {_arg1} to arg-1
+    set {_arg2} to arg-2
+    set {_playername} to name of player
+    loop all players:
+      set {playername} to name of loop-player
+      if "%{playername}%" is "%{_arg1}%":
+        send "TEST MSG FROM %{_playername}%: %{_arg2}%" to loop-player
+        send redis message "%{_arg1}%,@,@, %{_arg2}%,@,@, %{_playername}%" to channel "messages"
+command /friendsync:
+  trigger:
+    send redis message "sync,@,@, %{serverid}%" to channel "sync"
 command /serverid:
   trigger:
     send "%{serverid}%" to console
+command /printp:
+  trigger:
+    loop {uniqueplayers::*}:
+      send loop-value to console
+command /addp <string>:
+  trigger:
+    set {arg1.2} to arg-1
+    send "%{arg1.2}%" to console
+    add "%{arg1.2}%" to {uniqueplayers::*}
+command /cleartest:
+  trigger:
+    clear {uniqueplayers::*}
+on join:
+  set {_playerjoin} to UUID of player
+  if {uniqueplayers::*} doesn't contain "%{_playerjoin}%":
+    add "%{_playerjoin}%" to {uniqueplayers::*}
+  send redis message "%{_playerjoin}%,@,@, online" to channel "onlinenotif"
