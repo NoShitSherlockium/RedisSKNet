@@ -21,6 +21,11 @@ on redis message:
       set {playername} to name of loop-player
       if "%{playername}%" is "%{redismsg2::1}%":
         send "<##3effbf>◀ <##adadad>From <##3effbf>%{redismsg2::3}%<##adadad>: <##ffffff>%{redismsg2::2}%" to loop-player
+        set {messagefrom::%{playername}%} to "%{redismsg2::1}%"
+
+
+
+
   if redis channel is "sync":
     set {redismsg3::*} to split "%redis message%" at ",@,@, "
     #if "%{serverid}%" is "%{redismsg3::1}%":
@@ -87,16 +92,20 @@ command /r <string>:
   trigger:
     set {_arg1} to arg-1
     set {_playername} to name of player
+    set {_replyto} to "%{messagefrom::%{_playername}%}%"
     if "%{_arg1}%" is "%{_playername}%":
       send "{@messageSelf}" to player
     else:
-      if {onlineplayers::*} contains "%{_arg1}%":
-        send "<##dedede>▷ <##adadad>Replying to <##3effbf>%{redismsg2::3}%<##adadad>: <##ffffff>%{_arg1}%" to player
-        send redis message "%{redismsg2::3}%,@,@, %{_arg1}%,@,@, %{_playername}%" to channel "messages"
-      if {onlineplayers::*} doesn't contain "%{_arg1}%":
-        send "<##dedede>▷ <##adadad>Replying to <##3effbf>%{redismsg2::3}%<##adadad>: <##ffffff>%{_arg1}%" to player
-        send "<##ff3232>✘ <##ffffff>We sent the message to <##adadad>%{redismsg2::3}% <##ffffff>But our network shows them offline, If this is an error, contact your server Developer/Owner" to player
-        send redis message "%{redismsg2::3}%,@,@, %{_arg1}%,@,@, %{_playername}%" to channel "messages"
+      if {onlineplayers::*} contains "%{messagefrom::%{_playername}%}%":
+        send "<##dedede>▷ <##adadad>Replying to <##3effbf>%{_replyto}%<##adadad>: <##ffffff>%{_arg1}%" to player
+        send redis message "%{_replyto}%,@,@, %{_arg1}%,@,@, %{_playername}%" to channel "messages"
+      if {onlineplayers::*} doesn't contain "%{messagefrom::%{_playername}%}%":
+        send "<##dedede>▷ <##adadad>Replying to <##3effbf>%{_replyto}%<##adadad>: <##ffffff>%{_arg1}%" to player
+        send "<##ff3232>✘ <##ffffff>We sent the message to <##adadad>%{_replyto}% <##ffffff>But our network shows them offline, If this is an error, contact your server Developer/Owner" to player
+        send redis message "%{_replyto}%,@,@, %{_arg1}%,@,@, %{_playername}%" to channel "messages"
+command /printreply:
+  trigger:
+    send "%{reply::%{_playername}%::name}%" to player
 command /friendsync:
   trigger:
     send redis message "sync,@,@, %{serverid}%" to channel "sync"
