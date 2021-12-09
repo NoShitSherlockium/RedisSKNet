@@ -1,6 +1,7 @@
 Options:
   heartbeatFail: <##ff3232>✘ <##ffffff>%{hbsend}% <##adadad>didn't return the pulse.
   heartbeatResponded: <##20f722>✔ <##ffffff>%{hbsend}% <##adadad>is healthy!
+  messageSelf: <##ff3232>ℹ <##d1d1d1>You can't message yourself, silly.
 on redis message:
   if redis channel is "heartbeat":
     set {redismsg::*} to split "%redis message%" at ",@,@, "
@@ -66,14 +67,28 @@ command /msg <string> <string>:
     set {_arg1} to arg-1
     set {_arg2} to arg-2
     set {_playername} to name of player
-    send "<##dedede>▶ <##adadad>To <##3effbf>%{_arg1}%<##adadad>: <##ffffff>%{_arg2}%"
-    send redis message "%{_arg1}%,@,@, %{_arg2}%,@,@, %{_playername}%" to channel "messages"
+    if "%{_arg1}%" is "%{_playername}%":
+      send "{@messageSelf}" to player
+    if {onlineplayers::*} contains "%{_arg1}%":
+      send "<##dedede>▶ <##adadad>To <##3effbf>%{_arg1}%<##adadad>: <##ffffff>%{_arg2}%" to player
+      send redis message "%{_arg1}%,@,@, %{_arg2}%,@,@, %{_playername}%" to channel "messages"
+    if {onlineplayers::*} doesn't contain "%{_arg1}%":
+      send "<##dedede>▶ <##adadad>To <##3effbf>%{_arg1}%<##adadad>: <##ffffff>%{_arg2}%" to player
+      send redis message "%{_arg1}%,@,@, %{_arg2}%,@,@, %{_playername}%" to channel "messages"
+      send "<##ff3232>✘ <##ffffff>We sent the message to <##adadad>%{redismsg2::3}% <##ffffff>But our network shows them offline, If this is an error, contact your server Developer/Owner" to player
 command /r <string>:
   trigger:
     set {_arg1} to arg-1
     set {_playername} to name of player
-    send "<##dedede>▷ <##adadad>Replying to <##3effbf>%{redismsg2::3}%<##adadad>: <##ffffff>%{_arg1}%" to player
-    send redis message "%{redismsg2::3}%,@,@, %{_arg1}%,@,@, %{_playername}%" to channel "messages"
+    if "%{_arg1}%" is "%{_playername}%":
+      send "{@messageSelf}" to player
+    if {onlineplayers::*} contains "%{_arg1}%":
+      send "<##dedede>▷ <##adadad>Replying to <##3effbf>%{redismsg2::3}%<##adadad>: <##ffffff>%{_arg1}%" to player
+      send redis message "%{redismsg2::3}%,@,@, %{_arg1}%,@,@, %{_playername}%" to channel "messages"
+    if {onlineplayers::*} doesn't contain "%{_arg1}%":
+      send "<##dedede>▷ <##adadad>Replying to <##3effbf>%{redismsg2::3}%<##adadad>: <##ffffff>%{_arg1}%" to player
+      send "<##ff3232>✘ <##ffffff>We sent the message to <##adadad>%{redismsg2::3}% <##ffffff>But our network shows them offline, If this is an error, contact your server Developer/Owner" to player
+      send redis message "%{redismsg2::3}%,@,@, %{_arg1}%,@,@, %{_playername}%" to channel "messages"
 command /friendsync:
   trigger:
     send redis message "sync,@,@, %{serverid}%" to channel "sync"
