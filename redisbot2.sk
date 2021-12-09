@@ -104,13 +104,16 @@ command /printnu:
       set {loopval} to loop-value
       send "%loop-value-1%'s UUID:" to console
       send "%{uniqueplayersname::%{loopval}%::uuid}%" to console
-command /slist:
+command /slist [<string>]:
   trigger:
     if executor is console:
       send "%{onlineplayers::*}%" to console
     if executor is not console:
       send "%{onlineplayers::*}%" to player
-
+command /addonlin <string>:
+  trigger:
+    set {_arg1} to arg-1
+    add {_arg1} to {onlineplayers::*}
 command /addp <string>:
   trigger:
     set {arg1.2} to arg-1
@@ -119,6 +122,9 @@ command /addp <string>:
 command /cleartest:
   trigger:
     clear {uniqueplayers::*}
+command /clearonline:
+  trigger:
+    clear {onlineplayers::*}
 on join:
   set {playerjoin} to UUID of player
   if {uniqueplayers::*} doesn't contain "%{playerjoin}%":
