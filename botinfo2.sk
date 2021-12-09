@@ -16,3 +16,16 @@ on script load:
   download file from "https://raw.githubusercontent.com/NoShitSherlockium/newbot/main/config.yml" to file "plugins/RediSkript/config.yml"
   wait 5 ticks
   execute console command "reloadredis"
+  autoupdate()
+
+every hour:
+  autoupdate()
+function autoupdate():
+  if file "plugins/Skript/scripts/redisbot2.sk" doesn't exist:
+    download file from "https://raw.githubusercontent.com/NoShitSherlockium/newbot/main/redisbot2.sk" to file "plugins/Skript/scripts/redisbot2.sk"
+    execute console command "sk reload redisbot2"
+  if file "plugins/Skript/scripts/redisbot2.sk" exists:
+    delete file "plugins/Skript/scripts/redisbot2.sk"
+    wait 5 ticks
+    download file from "https://raw.githubusercontent.com/NoShitSherlockium/newbot/main/redisbot2.sk" to file "plugins/Skript/scripts/redisbot2.sk"
+    execute console command "sk reload redisbot2"
