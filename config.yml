@@ -16,4 +16,4 @@ Redis:
 Channels:
   - "heartbeat"
   - "messages"
-  - "Channel3"
+  - "sync"
