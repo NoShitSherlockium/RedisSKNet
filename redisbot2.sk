@@ -1,3 +1,5 @@
+on script load:
+  locally suppress conflict warnings
 Options:
   heartbeatFail: <##ff3232>✘ <##ffffff>%{hbsend}% <##adadad>didn't return the pulse.
   heartbeatResponded: <##20f722>✔ <##ffffff>%{hbsend}% <##adadad>is healthy!
@@ -63,6 +65,8 @@ command /heartbeat <string>:
       if executor is not console:
         send "{@heartbeatFail}" to player
 command /msg <string> <string>:
+  aliases: /message
+  usage: Send a message to any player on the network /message <player> <message> or /msg <player> <msg>
   trigger:
     set {_arg1} to arg-1
     set {_arg2} to arg-2
@@ -78,6 +82,8 @@ command /msg <string> <string>:
         send redis message "%{_arg1}%,@,@, %{_arg2}%,@,@, %{_playername}%" to channel "messages"
         send "<##ff3232>✘ <##ffffff>We sent the message to <##adadad>%{_arg1}% <##ffffff>But our network shows them offline, If this is an error, contact your server Developer/Owner" to player
 command /r <string>:
+  usage: Reply to last recieved message! /reply <message> or /r <msg>
+  aliases: /reply
   trigger:
     set {_arg1} to arg-1
     set {_playername} to name of player
@@ -124,7 +130,7 @@ command /printnu:
       set {loopval} to loop-value
       send "%loop-value-1%'s UUID:" to console
       send "%{uniqueplayersname::%{loopval}%::uuid}%" to console
-command /slist [<string>]:
+command /list [<string>]:
   trigger:
     if executor is console:
       send "%{onlineplayers::*}%" to console
