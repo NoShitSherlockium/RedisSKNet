@@ -17,7 +17,7 @@ on redis message:
     loop all players:
       set {playername} to name of loop-player
       if "%{playername}%" is "%{redismsg2::1}%":
-        send "TEST MSG FROM %{redismsg::3}%: %{redismsg::2}%" to loop-player
+        send "TEST MSG FROM %{redismsg2::3}%: %{redismsg2::2}%" to loop-player
   if redis channel is "sync":
     set {redismsg3::*} to split "%redis message%" at ",@,@, "
     #if "%{serverid}%" is "%{redismsg3::1}%":
@@ -32,9 +32,14 @@ on redis message:
       set {uniqueplayers::%{redismsg3::1}%::name} to "%{redismsg3::2}%"
     if {uniqueplayersname::*} doesn't contain "%{redismsg3::2}%":
       add {redismsg3::2} to {uniqueplayersname::*}
-      set {uniqueplayersname::%{redismsg::2}%::uuid} to "%{redismsg3::1}%"
+      set {uniqueplayersname::%{redismsg3::2}%::uuid} to "%{redismsg3::1}%"
     if {uniqueplayersname::*} contains "%{redismsg3::2}%":
-      set {uniqueplayersname::%{redismsg::2}%::uuid} to "%{redismsg3::1}%"
+      set {uniqueplayersname::%{redismsg3::2}%::uuid} to "%{redismsg3::1}%"
+    if {redismsg3::3} is "online":
+      if {onlineplayers::*} doesn't contain "%{redismsg3::2}%":
+        add {redismsg3::2} to {onlineplayers::*}
+    if {redismsg3::3} is "offline":
+      remove {redismsg3::2} from {onlineplayers::*}
 
 command /heartbeat <string>:
   trigger:
@@ -56,15 +61,15 @@ command /heartbeat <string>:
         send "%{arg1}% Is Not Responding" to console
       if executor is not console:
         send "{@heartbeatFail}" to player
-command /kmsg <string> <string>:
+command /smsg <string> <string>:
   trigger:
     set {_arg1} to arg-1
     set {_arg2} to arg-2
     set {_playername} to name of player
-    loop all players:
-      set {playername} to name of loop-player
-      if "%{playername}%" is "%{_arg1}%":
-        send "TEST MSG FROM %{_playername}%: %{_arg2}%" to loop-player
+    #oop all players:
+    #  set {playername} to name of loop-player
+    #  if "%{playername}%" is "%{_arg1}%":
+        #send "TEST MSG FROM %{_playername}%: %{_arg2}%" to loop-player
     send redis message "%{_arg1}%,@,@, %{_arg2}%,@,@, %{_playername}%" to channel "messages"
 command /friendsync:
   trigger:
@@ -99,7 +104,12 @@ command /printnu:
       set {loopval} to loop-value
       send "%loop-value-1%'s UUID:" to console
       send "%{uniqueplayersname::%{loopval}%::uuid}%" to console
-
+command /slist:
+  trigger:
+    if executor is console:
+      send "%{onlineplayers::*}%" to console
+    if executor is not console:
+      send "%{onlineplayers::*}%" to player
 
 command /addp <string>:
   trigger:
