@@ -24,8 +24,9 @@ on redis message:
     #    loop {uniqueplayers::*}:
     #      send "%{uniqueplayers::%loop-value%}%"
   if redis channel is "onlinenotif":
-    if {uniqueplayers::*} doesn't contain "%{_playerjoin}%":
-      add "%{_playerjoin}%" to {uniqueplayers::*}
+    set {redismsg3::*} to split "%redis message%" at ",@,@, "
+    if {uniqueplayer::*} doesn't contain "%{redismsg3::1}%":
+      add "%{redismsg3::1}%" to {uniqueplayers::*}
 
 command /heartbeat <string>:
   trigger:
