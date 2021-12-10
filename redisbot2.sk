@@ -21,7 +21,7 @@ on redis message:
       set {playername} to name of loop-player
       if "%{playername}%" is "%{redismsg2::1}%":
         send "<##3effbf>◀ <##adadad>From <##3effbf>%{redismsg2::3}%<##adadad>: <##ffffff>%{redismsg2::2}%" to loop-player
-        set {messagefrom::%{playername}%} to "%{redismsg2::1}%"
+        set {messagefrom::%{playername}%} to "%{redismsg2::3}%"
 
 
 
