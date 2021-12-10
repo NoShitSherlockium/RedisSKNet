@@ -160,10 +160,12 @@ command /cleartest:
 command /clearonline:
   trigger:
     clear {onlineplayers::*}
-command /givecoords <string>:
+command /givecoords <player>:
   trigger:
+    set {_arg1} to arg-1
     set {_playerloc} to player's location
-    send "%{_playerloc}%" to player
+    send "You sent your coordinates to %{_arg1}%"
+    send "%player%'s Coords: %{_playerloc}%" to ("%{_arg1}%" parsed as a player)
 on join:
   set {playerjoin} to UUID of player
   if {uniqueplayers::*} doesn't contain "%{playerjoin}%":
