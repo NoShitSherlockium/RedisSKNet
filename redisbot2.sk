@@ -160,6 +160,10 @@ command /cleartest:
 command /clearonline:
   trigger:
     clear {onlineplayers::*}
+command /givecoords <string>:
+  trigger:
+    set {_playerloc} to player's location
+    send "%{_playerloc}%" to player
 on join:
   set {playerjoin} to UUID of player
   if {uniqueplayers::*} doesn't contain "%{playerjoin}%":
