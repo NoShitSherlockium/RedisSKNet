@@ -202,9 +202,8 @@ on join:
     set {uniqueplayers::%{playerjoin}%::name} to "%player%"
     set {uniqueplayersname::%player%::uuid} to "%{playerjoin}%"
   if {newupdate} is "true":
-    loop all players:
-      if loop-player is OP:
-        send "Network bot update available! do /updatenet to apply the update!" to loop-player
+      if player is OP:
+        send "Network bot update available! do /updatenet to apply the update!" to player
   send redis message "%{playerjoin}%,@,@, %player%,@,@, online" to channel "onlinenotif"
 on disconnect:
   send redis message "%{playerjoin}%,@,@, %player%,@,@, offline" to channel "onlinenotif"
