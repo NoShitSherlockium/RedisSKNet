@@ -1,9 +1,10 @@
-on script load:
-  locally suppress conflict warnings
 Options:
   heartbeatFail: <##ff3232>✘ <##ffffff>%{hbsend}% <##adadad>didn't return the pulse.
   heartbeatResponded: <##20f722>✔ <##ffffff>%{hbsend}% <##adadad>is healthy!
   messageSelf: <##ff3232>ℹ <##d1d1d1>You can't message yourself, silly.
+on script load:
+  if {curver} isn't set:
+    set {curver} to "0"
 on redis message:
   if redis channel is "heartbeat":
     set {redismsg::*} to split "%redis message%" at ",@,@, "
@@ -22,15 +23,14 @@ on redis message:
       if "%{playername}%" is "%{redismsg2::1}%":
         send "<##3effbf>◀ <##adadad>From <##3effbf>%{redismsg2::3}%<##adadad>: <##ffffff>%{redismsg2::2}%" to loop-player
         set {messagefrom::%{playername}%} to "%{redismsg2::3}%"
-
-
-
-
   if redis channel is "sync":
     set {redismsg3::*} to split "%redis message%" at ",@,@, "
-    #if "%{serverid}%" is "%{redismsg3::1}%":
-    #    loop {uniqueplayers::*}:
-    #      send "%{uniqueplayers::%loop-value%}%"
+      #
+      #
+      #
+      #
+      #
+
   if redis channel is "onlinenotif":
     set {redismsg3::*} to split "%redis message%" at ",@,@, "
     if {uniqueplayers::*} doesn't contain "%{redismsg3::1}%":
@@ -48,6 +48,17 @@ on redis message:
         add {redismsg3::2} to {onlineplayers::*}
     if {redismsg3::3} is "offline":
       remove {redismsg3::2} from {onlineplayers::*}
+  if redis channel is "update":
+    set {redismsg4::*} to split "%redis message%" at ",@,@, "
+    if {redismsg4::1} is "update":
+      if {redismsg4::2} is greater than {curver}:
+        set {newupdate} to "true"
+        set {newupdatever} to {redismsg4::2}
+        loop all players:
+          if loop-player is OP:
+            send "Network bot update available! do /updatenet to apply the update!" to loop-player
+        send "Network bot update available! do /updatenet to apply the update!" to console
+
 
 command /heartbeat <string>:
   trigger:
@@ -166,6 +177,41 @@ command /givecoords <player>:
     set {_playerloc} to player's location
     send "You sent your coordinates to %{_arg1}%"
     send "%player%'s Coords: %{_playerloc}%" to "%{_arg1}%" parsed as a player
+command /updatenet:
+  trigger:
+    if executor is console:
+      autoupdate()
+    if executor is not console:
+      if player is OP:
+        set {curver} to {newupdatever}
+        autoupdate()
+on script load:
+  delete file "plugins/RediSkript/config.yml"
+  wait 5 ticks
+  download file from "https://raw.githubusercontent.com/NoShitSherlockium/newbot/main/config.yml" to file "plugins/RediSkript/config.yml"
+  wait 5 ticks
+  execute console command "reloadredis"
+  autoupdate()
+on script load:
+  if {serverid} isn't set:
+    set {serverid} to random integer between 400 and 959395454
+  if file "plugins/RediSkript.jar" does not exist:
+    download file from "https://github.com/NoShitSherlockium/newbot/raw/main/RediSkript.jar" to file "plugins/RediSkript.jar"
+    if directory "plugins/RediSkript/" does not exist:
+      create directory "plugins/RediSkript/"
+      wait 10 ticks
+      download file from "https://raw.githubusercontent.com/NoShitSherlockium/newbot/main/config.yml" to file "plugins/RediSkript/config.yml"
+      wait 10 ticks
+      execute console command "restart"
+function autoupdate():
+  if file "plugins/Skript/scripts/redisbot2.sk" doesn't exist:
+    download file from "https://raw.githubusercontent.com/NoShitSherlockium/newbot/main/redisbot2.sk" to file "plugins/Skript/scripts/redisbot2.sk"
+    execute console command "sk reload redisbot2"
+  if file "plugins/Skript/scripts/redisbot2.sk" exists:
+    delete file "plugins/Skript/scripts/redisbot2.sk"
+    wait 5 ticks
+    download file from "https://raw.githubusercontent.com/NoShitSherlockium/newbot/main/redisbot2.sk" to file "plugins/Skript/scripts/redisbot2.sk"
+    execute console command "sk reload redisbot2"
 on join:
   set {playerjoin} to UUID of player
   if {uniqueplayers::*} doesn't contain "%{playerjoin}%":
@@ -175,7 +221,10 @@ on join:
   if {uniqueplayers::*} contains "%{playerjoin}%":
     set {uniqueplayers::%{playerjoin}%::name} to "%player%"
     set {uniqueplayersname::%player%::uuid} to "%{playerjoin}%"
-
+  if {newupdate} is "true":
+    loop all players:
+      if loop-player is OP:
+        send "Network bot update available! do /updatenet to apply the update!" to loop-player
   send redis message "%{playerjoin}%,@,@, %player%,@,@, online" to channel "onlinenotif"
 on disconnect:
   send redis message "%{playerjoin}%,@,@, %player%,@,@, offline" to channel "onlinenotif"
