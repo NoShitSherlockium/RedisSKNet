@@ -4,7 +4,7 @@ Options:
   messageSelf: <##ff3232>ℹ <##d1d1d1>You can't message yourself, silly.
 on script load:
   if {curver} isn't set:
-    set {curver} to "0"
+    set {curver} to 0
 on redis message:
   if redis channel is "heartbeat":
     set {redismsg::*} to split "%redis message%" at ",@,@, "
@@ -51,13 +51,16 @@ on redis message:
   if redis channel is "update":
     set {redismsg4::*} to split "%redis message%" at ",@,@, "
     if {redismsg4::1} is "update":
-      if {redismsg4::2} is greater than {curver}:
+      set {newupdatever1} to "%{redismsg4::2}%" parsed as integer
+      if {newupdatever1} > {curver}:
         set {newupdate} to "true"
-        set {newupdatever} to {redismsg4::2}
         loop all players:
           if loop-player is OP:
             send "Network bot update available! do /updatenet to apply the update!" to loop-player
         send "Network bot update available! do /updatenet to apply the update!" to console
+command /clearbroke:
+  trigger:
+    clear {curver}
 
 
 command /heartbeat <string>:
@@ -183,7 +186,7 @@ command /updatenet:
       autoupdate()
     if executor is not console:
       if player is OP:
-        set {curver} to {newupdatever}
+        set {curver} to {newupdatever} parsed as integer
         autoupdate()
 on join:
   set {playerjoin} to UUID of player
