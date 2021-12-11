@@ -193,6 +193,7 @@ command /updatenet:
         send "Updating! Ignore any warnings!" to console
         send "Updating! Ignore any warnings!" to player
         autoupdate()
+        dsafsgfsgdgdfscg
 on join:
   set {playerjoin} to UUID of player
   if {uniqueplayers::*} doesn't contain "%{playerjoin}%":
