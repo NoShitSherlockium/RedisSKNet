@@ -54,6 +54,7 @@ on redis message:
       set {newupdatever1} to "%{redismsg4::2}%" parsed as integer
       if {newupdatever1} > {curver}:
         set {newupdate} to "true"
+        set {newupdatever} to {newupdatever1}
         loop all players:
           if loop-player is OP:
             send "Network bot update available! do /updatenet to apply the update!" to loop-player
@@ -186,7 +187,7 @@ command /updatenet:
       autoupdate()
     if executor is not console:
       if player is OP:
-        set {curver} to {newupdatever} parsed as integer
+        set {curver} to {newupdatever}
         autoupdate()
 on join:
   set {playerjoin} to UUID of player
