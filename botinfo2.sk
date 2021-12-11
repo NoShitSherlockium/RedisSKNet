@@ -1,5 +1,4 @@
 on script load:
-  set {serverip} to "smp.shrlk.cf"
   if {serverid} isn't set:
     set {serverid} to random integer between 400 and 959395454
   if file "plugins/RediSkript.jar" does not exist:
