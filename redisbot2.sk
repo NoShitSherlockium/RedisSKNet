@@ -58,7 +58,6 @@ on redis message:
         loop all players:
           if loop-player is OP:
             send "Network bot update available! do /updatenet to apply the update!" to loop-player
-        send "Network bot update available! do /updatenet to apply the update!" to console
 command /clearbroke:
   trigger:
     clear {curver}
