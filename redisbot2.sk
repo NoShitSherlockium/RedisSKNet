@@ -208,3 +208,4 @@ on join:
   send redis message "%{playerjoin}%,@,@, %player%,@,@, online" to channel "onlinenotif"
 on disconnect:
   send redis message "%{playerjoin}%,@,@, %player%,@,@, offline" to channel "onlinenotif"
+#Test
