@@ -58,6 +58,7 @@ on redis message:
         loop all players:
           if loop-player is OP:
             send "Network bot update available! do /updatenet to apply the update!" to loop-player
+        send "Network bot update available! do /updatenet to apply the update!" to console
 command /clearbroke:
   trigger:
     clear {curver}
@@ -183,10 +184,13 @@ command /givecoords <player>:
 command /updatenet:
   trigger:
     if executor is console:
+      send "Updating! Ignore any warnings!" to console
       autoupdate()
     if executor is not console:
       if player is OP:
         set {curver} to {newupdatever}
+        set {newupdate} to "false"
+        send "Updating! Ignore any warnings!" to console
         autoupdate()
 on join:
   set {playerjoin} to UUID of player
