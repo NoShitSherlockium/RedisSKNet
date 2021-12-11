@@ -185,33 +185,6 @@ command /updatenet:
       if player is OP:
         set {curver} to {newupdatever}
         autoupdate()
-on script load:
-  delete file "plugins/RediSkript/config.yml"
-  wait 5 ticks
-  download file from "https://raw.githubusercontent.com/NoShitSherlockium/newbot/main/config.yml" to file "plugins/RediSkript/config.yml"
-  wait 5 ticks
-  execute console command "reloadredis"
-  autoupdate()
-on script load:
-  if {serverid} isn't set:
-    set {serverid} to random integer between 400 and 959395454
-  if file "plugins/RediSkript.jar" does not exist:
-    download file from "https://github.com/NoShitSherlockium/newbot/raw/main/RediSkript.jar" to file "plugins/RediSkript.jar"
-    if directory "plugins/RediSkript/" does not exist:
-      create directory "plugins/RediSkript/"
-      wait 10 ticks
-      download file from "https://raw.githubusercontent.com/NoShitSherlockium/newbot/main/config.yml" to file "plugins/RediSkript/config.yml"
-      wait 10 ticks
-      execute console command "restart"
-function autoupdate():
-  if file "plugins/Skript/scripts/redisbot2.sk" doesn't exist:
-    download file from "https://raw.githubusercontent.com/NoShitSherlockium/newbot/main/redisbot2.sk" to file "plugins/Skript/scripts/redisbot2.sk"
-    execute console command "sk reload redisbot2"
-  if file "plugins/Skript/scripts/redisbot2.sk" exists:
-    delete file "plugins/Skript/scripts/redisbot2.sk"
-    wait 5 ticks
-    download file from "https://raw.githubusercontent.com/NoShitSherlockium/newbot/main/redisbot2.sk" to file "plugins/Skript/scripts/redisbot2.sk"
-    execute console command "sk reload redisbot2"
 on join:
   set {playerjoin} to UUID of player
   if {uniqueplayers::*} doesn't contain "%{playerjoin}%":
