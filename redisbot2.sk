@@ -191,6 +191,7 @@ command /updatenet:
         set {curver} to {newupdatever}
         set {newupdate} to "false"
         send "Updating! Ignore any warnings!" to console
+        send "Updating! Ignore any warnings!" to player
         autoupdate()
 on join:
   set {playerjoin} to UUID of player
