@@ -1,0 +1,175 @@
+Options:
+  heartbeatFail: <##ff3232>✘ <##ffffff>%{hbsend}% <##adadad>didn't return the pulse.
+  heartbeatResponded: <##20f722>✔ <##ffffff>%{hbsend}% <##adadad>is healthy!
+  messageSelf: <##ff3232>ℹ <##d1d1d1>You can't message yourself, silly.
+on redis message:
+  if redis channel is "heartbeat":
+    set {redismsg::*} to split "%redis message%" at ",@,@, "
+    if "%{redismsg::1}%" isn't "%{serverid}%":
+      if "%{redismsg::2}%" is "%{serverid}%":
+        if {redismsg::3} is "heartbeat":
+          if {redismsg::4} is "1":
+            send redis message "%{serverid}%,@,@, %{redismsg::1}%,@,@, heartbeat,@,@, 2" to channel "heartbeat"
+            if "%{redismsg::1}%" isn't "NET":
+              send "Heartbeat Received From %{redismsg::1}%" to console
+          if "%{redismsg::4}%" is "2":
+            set {replyREC} to "true"
+  if redis channel is "messages":
+    set {redismsg2::*} to split "%redis message%" at ",@,@, "
+    loop all players:
+      set {playername} to name of loop-player
+      if "%{playername}%" is "%{redismsg2::1}%":
+        send "<##3effbf>◀ <##adadad>From <##3effbf>%{redismsg2::3}%<##adadad>: <##ffffff>%{redismsg2::2}%" to loop-player
+        set {messagefrom::%{playername}%} to "%{redismsg2::1}%"
+
+
+
+
+  if redis channel is "sync":
+    set {redismsg3::*} to split "%redis message%" at ",@,@, "
+    #if "%{serverid}%" is "%{redismsg3::1}%":
+    #    loop {uniqueplayers::*}:
+    #      send "%{uniqueplayers::%loop-value%}%"
+  if redis channel is "onlinenotif":
+    set {redismsg3::*} to split "%redis message%" at ",@,@, "
+    if {uniqueplayers::*} doesn't contain "%{redismsg3::1}%":
+      add {redismsg3::1} to {uniqueplayers::*}
+      set {uniqueplayers::%{redismsg3::1}%::name} to "%{redismsg3::2}%"
+    if {uniqueplayers::*} contains "%{redismsg3::1}%":
+      set {uniqueplayers::%{redismsg3::1}%::name} to "%{redismsg3::2}%"
+    if {uniqueplayersname::*} doesn't contain "%{redismsg3::2}%":
+      add {redismsg3::2} to {uniqueplayersname::*}
+      set {uniqueplayersname::%{redismsg3::2}%::uuid} to "%{redismsg3::1}%"
+    if {uniqueplayersname::*} contains "%{redismsg3::2}%":
+      set {uniqueplayersname::%{redismsg3::2}%::uuid} to "%{redismsg3::1}%"
+    if {redismsg3::3} is "online":
+      if {onlineplayers::*} doesn't contain "%{redismsg3::2}%":
+        add {redismsg3::2} to {onlineplayers::*}
+    if {redismsg3::3} is "offline":
+      remove {redismsg3::2} from {onlineplayers::*}
+on script load:
+  send redis message "%{serverid}%,@,@, NET,@,@, heartbeat,@,@, 1" to channel "heartbeat"
+command /heartbeat <string>:
+  trigger:
+    set {hbsend} to arg-1
+    set {arg1} to arg-1
+    send redis message "%{serverid}%,@,@, %{arg1}%,@,@, heartbeat,@,@, 1" to channel "heartbeat"
+    wait 10 ticks
+    if {replyREC} is "true":
+      if executor is console:
+        send "%{arg1}% Is Online" to console
+        wait 10 ticks
+        set {replyREC} to "false"
+      if executor is not console:
+        send "{@heartbeatResponded}" to player
+        wait 10 ticks
+        set {replyREC} to "false"
+    else:
+      if executor is console:
+        send "%{arg1}% Is Not Responding" to console
+      if executor is not console:
+        send "{@heartbeatFail}" to player
+command /msg <string> <string>:
+  aliases: /message
+  usage: Send a message to any player on the network /message <player> <message> or /msg <player> <msg>
+  trigger:
+    set {_arg1} to arg-1
+    set {_arg2} to arg-2
+    set {_playername} to name of player
+    if "%{_arg1}%" is "%{_playername}%":
+      send "{@messageSelf}" to player
+    else:
+      if {onlineplayers::*} contains "%{_arg1}%":
+        send "<##dedede>▶ <##adadad>To <##3effbf>%{_arg1}%<##adadad>: <##ffffff>%{_arg2}%" to player
+        send redis message "%{_arg1}%,@,@, %{_arg2}%,@,@, %{_playername}%" to channel "messages"
+      if {onlineplayers::*} doesn't contain "%{_arg1}%":
+        send "<##dedede>▶ <##adadad>To <##3effbf>%{_arg1}%<##adadad>: <##ffffff>%{_arg2}%" to player
+        send redis message "%{_arg1}%,@,@, %{_arg2}%,@,@, %{_playername}%" to channel "messages"
+        send "<##ff3232>✘ <##ffffff>We sent the message to <##adadad>%{_arg1}% <##ffffff>But our network shows them offline, If this is an error, contact your server Developer/Owner" to player
+command /r <string>:
+  usage: Reply to last recieved message! /reply <message> or /r <msg>
+  aliases: /reply
+  trigger:
+    set {_arg1} to arg-1
+    set {_playername} to name of player
+    set {_replyto} to "%{messagefrom::%{_playername}%}%"
+    if "%{_arg1}%" is "%{_playername}%":
+      send "{@messageSelf}" to player
+    else:
+      if {onlineplayers::*} contains "%{messagefrom::%{_playername}%}%":
+        send "<##dedede>▷ <##adadad>Replying to <##3effbf>%{_replyto}%<##adadad>: <##ffffff>%{_arg1}%" to player
+        send redis message "%{_replyto}%,@,@, %{_arg1}%,@,@, %{_playername}%" to channel "messages"
+      if {onlineplayers::*} doesn't contain "%{messagefrom::%{_playername}%}%":
+        send "<##dedede>▷ <##adadad>Replying to <##3effbf>%{_replyto}%<##adadad>: <##ffffff>%{_arg1}%" to player
+        send "<##ff3232>✘ <##ffffff>We sent the message to <##adadad>%{_replyto}% <##ffffff>But our network shows them offline, If this is an error, contact your server Developer/Owner" to player
+        send redis message "%{_replyto}%,@,@, %{_arg1}%,@,@, %{_playername}%" to channel "messages"
+command /printreply:
+  trigger:
+    send "%{reply::%{_playername}%::name}%" to player
+command /friendsync:
+  trigger:
+    send redis message "sync,@,@, %{serverid}%" to channel "sync"
+command /serverid:
+  trigger:
+    send "%{serverid}%" to console
+command /printp:
+  trigger:
+    loop {uniqueplayers::*}:
+      set {_loopval} to loop-value
+      send "%loop-value-1%'s Friends:" to console
+      loop {uniqueplayers::%{_loopval}%::friends::*}:
+        send loop-value-2 to console
+command /printu:
+  trigger:
+    send "%{uniqueplayers::*}%" to console
+command /friendtest <string>:
+  trigger:
+    set {_friendcmduser} to player's uuid
+    set {_arg1} to arg-1
+    add "%{_arg1}%" to {uniqueplayers::%{_friendcmduser}%::friends::*}
+command /printn:
+  trigger:
+    loop {uniqueplayers::*}:
+      set {loopval} to loop-value
+      send "%loop-value-1%'s Name:" to console
+      send "%{uniqueplayers::%{loopval}%::name}%" to console
+command /printnu:
+  trigger:
+    loop {uniqueplayersname::*}:
+      set {loopval} to loop-value
+      send "%loop-value-1%'s UUID:" to console
+      send "%{uniqueplayersname::%{loopval}%::uuid}%" to console
+command /list [<string>]:
+  trigger:
+    if executor is console:
+      send "%{onlineplayers::*}%" to console
+    if executor is not console:
+      send "%{onlineplayers::*}%" to player
+command /addonlin <string>:
+  trigger:
+    set {_arg1} to arg-1
+    add {_arg1} to {onlineplayers::*}
+command /addp <string>:
+  trigger:
+    set {arg1.2} to arg-1
+    send "%{arg1.2}%" to console
+    add "%{arg1.2}%" to {uniqueplayers::*}
+command /cleartest:
+  trigger:
+    clear {uniqueplayers::*}
+command /clearonline:
+  trigger:
+    clear {onlineplayers::*}
+on join:
+  set {playerjoin} to UUID of player
+  if {uniqueplayers::*} doesn't contain "%{playerjoin}%":
+    add {playerjoin} to {uniqueplayers::*}
+    set {uniqueplayers::%{playerjoin}%::name} to "%player%"
+    set {uniqueplayersname::%player%::uuid} to "%{playerjoin}%"
+  if {uniqueplayers::*} contains "%{playerjoin}%":
+    set {uniqueplayers::%{playerjoin}%::name} to "%player%"
+    set {uniqueplayersname::%player%::uuid} to "%{playerjoin}%"
+
+  send redis message "%{playerjoin}%,@,@, %player%,@,@, online" to channel "onlinenotif"
+on disconnect:
+  send redis message "%{playerjoin}%,@,@, %player%,@,@, offline" to channel "onlinenotif"
