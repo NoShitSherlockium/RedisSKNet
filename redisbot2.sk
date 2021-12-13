@@ -17,7 +17,8 @@ on redis message:
         if {redismsg::3} is "heartbeat":
           if {redismsg::4} is "1":
             send redis message "%{serverid}%,@,@, %{redismsg::1}%,@,@, heartbeat,@,@, 2" to channel "heartbeat"
-            send "Heartbeat Received From %{redismsg::1}%" to console
+            if "%{redismsg::1}%" isn't "NET":
+              send "Heartbeat Received From %{redismsg::1}%" to console
           if "%{redismsg::4}%" is "2":
             set {replyREC} to "true"
   if redis channel is "messages":
