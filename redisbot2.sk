@@ -8,6 +8,7 @@ Options:
 on script load:
   if {curver} isn't set:
     set {curver} to 0
+  send redis message "%{serverid}%,@,@, %{redismsg::1}%,@,@, heartbeat,@,@, 2" to channel "heartbeat"
 on redis message:
   if redis channel is "heartbeat":
     set {redismsg::*} to split "%redis message%" at ",@,@, "
