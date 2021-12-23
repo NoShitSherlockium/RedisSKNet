@@ -89,7 +89,7 @@ command /heartbeat <string>:
         send "%{arg1}% Is Not Responding" to console
       if executor is not console:
         send "{@heartbeatFail}" to player
-command /msg <string> <string>:
+command /msg <offline player> <string>:
   aliases: /message
   usage: Send a message to any player on the network /message <player> <message> or /msg <player> <msg>
   trigger:
