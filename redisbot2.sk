@@ -229,11 +229,13 @@ on join:
     if player is OP:
       wait 20 ticks
       send "Network bot update available! do /updatenet to apply the update!" to player
-  add %player% to {_localplayers::*}
+  set {_player} to "%player%"
+  add {_player} to {_localplayers::*}
   send redis message "%{uniqueplayersname::%player%::uuid}%,@,@, %player%,@,@, online,@,@, %{serverid}%" to channel "onlinenotif"
 on disconnect:
+  set {_player} to "%player%"
   send redis message "%{uniqueplayersname::%player%::uuid}%,@,@, %player%,@,@, offline,@,@, %{serverid}%" to channel "onlinenotif"
-  remove %player% from {_localplayers::*}
+  remove {_player} from {_localplayers::*}
 #          ,gg,
 #         i8""8i   ,dPYb,                         ,dPYb,                        ,dPYb,
 #         `8,,8'   IP'`Yb                         IP'`Yb                        IP'`Yb
