@@ -9,6 +9,8 @@ on script load:
   if {curver} isn't set:
     set {curver} to 0
   send redis message "%{serverid}%,@,@, %{redismsg::1}%,@,@, heartbeat,@,@, 2" to channel "heartbeat"
+  clear {onlineplayers::*}
+  send redis message "sync" to channel "onlinesync"
 on redis message:
   if redis channel is "heartbeat":
     set {redismsg::*} to split "%redis message%" at ",@,@, "
@@ -21,6 +23,12 @@ on redis message:
               send "Heartbeat Received From %{redismsg::1}%" to console
           if "%{redismsg::4}%" is "2":
             set {replyREC} to "true"
+  if redis channel is "onlinesync":
+    if "%redis message%" is "sync":
+      loop {onlineplayers::*}:
+        set {_loopval} to loop-value
+        send redis message "%{uniqueplayersname::%{_loopval}%::uuid}%,@,@, %{_loopval}%,@,@, online,@,@, %{serverid}%" to channel "onlinenotif"
+
   if redis channel is "messages":
     set {redismsg2::*} to split "%redis message%" at ",@,@, "
     loop all players:
@@ -28,14 +36,6 @@ on redis message:
       if "%{playername}%" is "%{redismsg2::1}%":
         send "<##3effbf>◀ <##adadad>From <##3effbf>%{redismsg2::3}%<##adadad>: <##ffffff>%{redismsg2::2}%" to loop-player
         set {messagefrom::%{playername}%} to "%{redismsg2::3}%"
-  if redis channel is "sync":
-    set {redismsg3::*} to split "%redis message%" at ",@,@, "
-      #
-      #
-      #
-      #
-      #
-
   if redis channel is "onlinenotif":
     set {redismsg3::*} to split "%redis message%" at ",@,@, "
     if {uniqueplayers::*} doesn't contain "%{redismsg3::1}%":
@@ -229,9 +229,11 @@ on join:
     if player is OP:
       wait 20 ticks
       send "Network bot update available! do /updatenet to apply the update!" to player
-  send redis message "%{playerjoin}%,@,@, %player%,@,@, online,@,@, %{serverid}%" to channel "onlinenotif"
+  add %player% to {_localplayers::*}
+  send redis message "%{uniqueplayersname::%player%::uuid}%,@,@, %player%,@,@, online,@,@, %{serverid}%" to channel "onlinenotif"
 on disconnect:
-  send redis message "%{playerjoin}%,@,@, %player%,@,@, offline,@,@, %{serverid}%" to channel "onlinenotif"
+  send redis message "%{uniqueplayersname::%player%::uuid}%,@,@, %player%,@,@, offline,@,@, %{serverid}%" to channel "onlinenotif"
+  remove %player% from {_localplayers::*}
 #          ,gg,
 #         i8""8i   ,dPYb,                         ,dPYb,                        ,dPYb,
 #         `8,,8'   IP'`Yb                         IP'`Yb                        IP'`Yb
