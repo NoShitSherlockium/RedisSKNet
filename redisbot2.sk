@@ -25,9 +25,12 @@ on redis message:
             set {replyREC} to "true"
   if redis channel is "onlinesync":
     if "%redis message%" is "sync":
-      loop {onlineplayers::*}:
-        set {_loopval} to loop-value
-        send redis message "%{uniqueplayersname::%{_loopval}%::uuid}%,@,@, %{_loopval}%,@,@, online,@,@, %{serverid}%" to channel "onlinenotif"
+      clear {onlineplayers::*}
+      loop all players:
+        set {_p} to name of loop-player
+        if {onlineplayers::*} doesn't contain {_p}:
+          add {_p} to {onlineplayers::*}
+          send redis message "%{uniqueplayersname::%{_p}%::uuid}%,@,@, %{_p}%,@,@, online,@,@, %{serverid}%" to channel "onlinenotif"
 
   if redis channel is "messages":
     set {redismsg2::*} to split "%redis message%" at ",@,@, "
