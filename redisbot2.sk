@@ -67,10 +67,6 @@ on redis message:
           if loop-player is OP:
             send "Network bot update available! do /updatenet to apply the update!" to loop-player
         send "Network bot update available! do /updatenet to apply the update!" to console
-command /clearbroke:
-  trigger:
-    clear {curver}
-
 
 command /heartbeat <string>:
   trigger:
@@ -162,7 +158,7 @@ command /printnu:
       set {loopval} to loop-value
       send "%loop-value-1%'s UUID:" to console
       send "%{uniqueplayersname::%{loopval}%::uuid}%" to console
-command /list [<string>]:
+command /netlist [<string>]:
   trigger:
     if executor is console:
       send "%{onlineplayers::*}%" to console
