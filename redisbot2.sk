@@ -148,7 +148,7 @@ command /friendtest <string>:
     add "%{_arg1}%" to {uniqueplayers::%{_friendcmduser}%::friends::*}
 command /friends:
   trigger:
-    set {_friendcmduser} to player's
+    set {_friendcmduser} to player's uuid
     send "%{uniqueplayers::%{_friendcmduser}%::friends::*}%" to player
 command /printn:
   trigger:
